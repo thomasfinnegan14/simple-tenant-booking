@@ -58,9 +58,9 @@ function st_booking_shortcode() {
 
         // Check if the current day being printed is today
         if ($currentDay == $day) {
-            $calendar .= "<td class='currentDay'>$currentDay</td>";
+            $calendar .= "<td class='stb-cell currentDay'>$currentDay</td>";
         } else {
-            $calendar .= "<td>$currentDay</td>";
+            $calendar .= "<td class='stb-cell'>$currentDay</td>";
         }
         
         $currentDay++;

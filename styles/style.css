@@ -1,3 +1,11 @@
 .currentDay {
     background-color: #E5E4E2;
 }
+
+/* For computer screens */
+@media (min-width: 1025px) {
+    .stb-cell:hover {
+        background-color: #3b3b3b;
+        color: #FAF9F6;
+    }
+}
