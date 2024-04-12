@@ -14,8 +14,8 @@
  */
 
 function st_booking_shortcode() {
-    // Set timezone - Need to make dynamic
-    date_default_timezone_set('UTC');
+    // Set timezone - Uses WP Site Timezone
+    date_default_timezone_set(wp_timezone_string());
 
     // Variables for the current month and year
     $month = date('m');
