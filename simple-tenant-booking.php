@@ -56,10 +56,17 @@ function st_booking_shortcode() {
             $calendar .= "</tr><tr>";
         }
 
-        $calendar .= "<td>$currentDay</td>";
+        // Check if the current day being printed is today
+        if ($currentDay == $day) {
+            $calendar .= "<td class='currentDay'>$currentDay</td>";
+        } else {
+            $calendar .= "<td>$currentDay</td>";
+        }
+        
         $currentDay++;
         $dayOfWeek++;
     }
+
 
     // Complete the row of the last week in month with empty cells
     if ($dayOfWeek != 7) {
@@ -75,5 +82,10 @@ function st_booking_shortcode() {
     return $calendar;
 }
 add_shortcode('st_booking', 'st_booking_shortcode');
+
+function st_booking_load_plugin_css() {
+    wp_enqueue_style('st_booking_styles', plugins_url('styles/style.css', __FILE__), array(), '1.0.0', 'all');
+}
+add_action( 'wp_enqueue_scripts', 'st_booking_load_plugin_css' );
 
 ?>
