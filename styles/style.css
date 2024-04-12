@@ -6,6 +6,8 @@
 @media (min-width: 1025px) {
     .stb-cell:hover {
         background-color: #3b3b3b;
+    }
+    .stb-cell:hover > a {
         color: #FAF9F6;
     }
 }

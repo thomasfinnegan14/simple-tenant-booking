@@ -56,11 +56,17 @@ function st_booking_shortcode() {
             $calendar .= "</tr><tr>";
         }
 
-        // Check if the current day being printed is today
-        if ($currentDay == $day) {
-            $calendar .= "<td class='stb-cell currentDay'>$currentDay</td>";
+        // Check if current day is able to be selected
+        if ($currentDay >= $day) {
+            // Check if current day is today
+            if ($currentDay == $day) {
+                $calendar .= "<td class='stb-cell currentDay'><a href='#'>" . $currentDay . "</a></td>";
+            }
+            else {
+                $calendar .= "<td class='stb-cell'><a href='#'>" . $currentDay . "</a></td>";
+            }
         } else {
-            $calendar .= "<td class='stb-cell'>$currentDay</td>";
+            $calendar .= "<td>$currentDay</td>";
         }
         
         $currentDay++;
