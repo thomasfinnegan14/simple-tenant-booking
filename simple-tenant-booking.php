@@ -17,9 +17,10 @@ function st_booking_shortcode() {
     // Set timezone - Uses WP Site Timezone
     date_default_timezone_set(wp_timezone_string());
 
-    // Variables for the current month and year
+    // Variables for the current month, year, and day
     $month = date('m');
     $year = date('Y');
+    $day = date("d");
 
     // Get the first day of the month
     $firstDayOfMonth = mktime(0, 0, 0, $month, 1, $year);
