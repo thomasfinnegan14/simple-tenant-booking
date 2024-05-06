@@ -60,10 +60,10 @@ function st_booking_shortcode() {
         if ($currentDay >= $day) {
             // Check if current day is today
             if ($currentDay == $day) {
-                $calendar .= "<td class='stb-cell currentDay'><a href='#'>" . $currentDay . "</a></td>";
+                $calendar .= "<td class='stb-cell currentDay'><a href='#' class='date-link' data-day='$currentDay' data-month='$month' data-year='$year'>" . $currentDay . "</a></td>";
             }
             else {
-                $calendar .= "<td class='stb-cell'><a href='#'>" . $currentDay . "</a></td>";
+                $calendar .= "<td class='stb-cell'><a href='#' class='date-link' data-day='$currentDay' data-month='$month' data-year='$year'>" . $currentDay . "</a></td>";
             }
         } else {
             $calendar .= "<td>$currentDay</td>";
@@ -85,6 +85,9 @@ function st_booking_shortcode() {
     $calendar .= "</tr>";
     $calendar .= "</table>";
 
+    // Container for time slots
+    $calendar .= "<div id='time-slots' style='padding-top: 20px;'></div>";
+
     return $calendar;
 }
 add_shortcode('st_booking', 'st_booking_shortcode');
@@ -93,5 +96,11 @@ function st_booking_load_plugin_css() {
     wp_enqueue_style('st_booking_styles', plugins_url('styles/style.css', __FILE__), array(), '1.0.0', 'all');
 }
 add_action( 'wp_enqueue_scripts', 'st_booking_load_plugin_css' );
+
+function st_booking_enqueue_scripts() {
+    wp_enqueue_script('st_booking_time_slots', plugins_url('js/time-slots.js', __FILE__), array('jquery'), '1.0.0', true);
+}
+add_action('wp_enqueue_scripts', 'st_booking_enqueue_scripts');
+
 
 ?>
