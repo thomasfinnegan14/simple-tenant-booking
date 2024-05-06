@@ -10,6 +10,16 @@
     color: inherit;
 }
 
+.time-slot-button {
+    display: block;
+    margin: 5px 0;
+    width: 100%;
+}
+
+.unavailable {
+    background-color: #a1a1a1;
+}
+
 /* For computer screens */
 @media (min-width: 1025px) {
     .stb-cell {
