@@ -100,6 +100,7 @@ add_action( 'wp_enqueue_scripts', 'st_booking_load_plugin_css' );
 
 function st_booking_enqueue_scripts() {
     wp_enqueue_script('st_booking_time_slots', plugins_url('js/time-slots.js', __FILE__), array('jquery'), '1.0.0', true);
+    wp_localize_script('st_booking_time_slots', 'ajax_object', array( 'ajax_url' => admin_url( 'admin-ajax.php' )));
 }
 add_action('wp_enqueue_scripts', 'st_booking_enqueue_scripts');
 
@@ -125,5 +126,41 @@ function st_booking_create_booking_table() {
     }
 }
 register_activation_hook(__FILE__, 'st_booking_create_booking_table');
+
+function save_reservation() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'st_booking_reservations';
+
+    // Sanitize and validate inputs
+    $name = sanitize_text_field($_POST['name']);
+    $time_slot = sanitize_text_field($_POST['time_slot']);
+    $date = sanitize_text_field($_POST['date']);
+
+    // Insert the booking into the database
+    $wpdb->insert(
+        $table_name,
+        array(
+            'date' => $date,
+            'time_slot' => $time_slot,
+            'name' => $name
+        ),
+        array(
+            '%s', // date
+            '%s', // time_slot
+            '%s' // name
+        )
+    );
+
+    // Check for successful insertion
+    if($wpdb->insert_id) {
+        echo 'Reservation successful!';
+    } else {
+        echo 'Error in reservation.';
+    }
+
+    wp_die();
+}
+add_action('wp_ajax_save_reservation', 'save_reservation');
+add_action('wp_ajax_nopriv_save_reservation', 'save_reservation'); // Allow non-logged in users
 
 ?>
