@@ -103,5 +103,27 @@ function st_booking_enqueue_scripts() {
 }
 add_action('wp_enqueue_scripts', 'st_booking_enqueue_scripts');
 
+function st_booking_create_booking_table() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'st_booking_reservations';
+
+    // Check if the table already exists
+    if ($wpdb->get_var("SHOW TABLES LIKE '{$table_name}'") != $table_name) {
+        $charset_collate = $wpdb->get_charset_collate();
+
+        $sql = "CREATE TABLE `$table_name` (
+          `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `date` DATE NOT NULL,
+          `time_slot` VARCHAR(50) NOT NULL,
+          `name` VARCHAR(255) NOT NULL,
+          `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`)
+        ) $charset_collate;";
+
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+    }
+}
+register_activation_hook(__FILE__, 'st_booking_create_booking_table');
 
 ?>
