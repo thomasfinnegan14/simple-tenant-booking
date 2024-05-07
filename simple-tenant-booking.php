@@ -86,6 +86,7 @@ function st_booking_shortcode() {
     $calendar .= "</table>";
 
     // Container for time slots
+    $calendar .= "<h2 style='text-align:center;'>Time Slots:</h2>";
     $calendar .= "<div id='time-slots' style='padding-top: 20px;'></div>";
 
     return $calendar;
