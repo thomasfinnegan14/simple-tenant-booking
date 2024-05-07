@@ -85,11 +85,23 @@ function st_booking_shortcode() {
     $calendar .= "</tr>";
     $calendar .= "</table>";
 
+    // Fetch reservations for today
+    $today = date("Y-m-d");  // Ensure this matches the format of dates stored in your database
+    $todays_reservations = fetch_reservations_by_date($today);
+
+    // HTML for displaying reservations
+    $reservation_list = "<div id='reservation-list'><h3 id='reservation-list-title'>Today's Reservations:</h3><ul id='reservation-items'>";
+    foreach ($todays_reservations as $reservation) {
+        $reservation_list .= "<li>" . htmlspecialchars($reservation['time_slot']) . " - " . htmlspecialchars($reservation['name']) . "</li>";
+    }
+    $reservation_list .= "</ul></div>";    
+
     // Container for time slots
     $calendar .= "<h2 style='text-align:center;'>Time Slots:</h2>";
     $calendar .= "<div id='time-slots' style='padding-top: 20px;'></div>";
 
-    return $calendar;
+    // Include this line where you output the calendar and reservation list side by side
+    return $reservation_list . $calendar;
 }
 add_shortcode('st_booking', 'st_booking_shortcode');
 
@@ -162,5 +174,36 @@ function save_reservation() {
 }
 add_action('wp_ajax_save_reservation', 'save_reservation');
 add_action('wp_ajax_nopriv_save_reservation', 'save_reservation'); // Allow non-logged in users
+
+function fetch_reservations_by_date($date) {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'st_booking_reservations';
+
+    // Prepare the query to fetch reservations by date
+    $reservations = $wpdb->get_results($wpdb->prepare(
+        "SELECT time_slot, name FROM `$table_name` WHERE date = %s ORDER BY time_slot ASC",
+        $date
+    ), ARRAY_A);
+
+    return $reservations;
+}
+
+function ajax_fetch_monthly_reservations() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'st_booking_reservations';
+
+    $start_date = sanitize_text_field($_POST['start_date']);
+    $end_date = sanitize_text_field($_POST['end_date']);
+
+    // Ensure that start_date and end_date are valid and secure to use in a query
+    $reservations = $wpdb->get_results($wpdb->prepare(
+        "SELECT date, time_slot, name FROM `$table_name` WHERE date BETWEEN %s AND %s ORDER BY date, time_slot ASC",
+        $start_date, $end_date
+    ), ARRAY_A);
+
+    wp_send_json($reservations);
+}
+add_action('wp_ajax_fetch_monthly_reservations', 'ajax_fetch_monthly_reservations');
+add_action('wp_ajax_nopriv_fetch_monthly_reservations', 'ajax_fetch_monthly_reservations');
 
 ?>
