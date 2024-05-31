@@ -66,7 +66,7 @@ function st_booking_shortcode() {
                 $calendar .= "<td class='stb-cell'><a href='#' class='date-link' data-day='$currentDay' data-month='$month' data-year='$year'>" . $currentDay . "</a></td>";
             }
         } else {
-            $calendar .= "<td>$currentDay</td>";
+            $calendar .= "<td class='unavailable-cell'>$currentDay</td>";
         }
         
         $currentDay++;

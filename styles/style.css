@@ -10,6 +10,10 @@
     color: inherit;
 }
 
+.unavailable-cell {
+    color: #808285;
+}
+
 .time-slot-button {
     display: block;
     margin: 5px 0;
