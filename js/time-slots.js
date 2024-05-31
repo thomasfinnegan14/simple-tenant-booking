@@ -130,10 +130,12 @@ jQuery(document).ready(function($) {
 
         var formHtml = '<div id="booking-form">' +
                         '<h3>Selected time slot to reserve:</h3>' +
-                        '<p>' + selectedTime + '</p>' +
-                        '<span>' + ' -- ' + selectedMonthName + ' ' + day + '</span>' +
-                        '<input type="text" id="name" placeholder="Enter your name/company name" />' +
-                        '<button type="submit">Reserve</button>' +
+                        '<div style="display:flex;">' +
+                            '<p>' + selectedTime + '</p>' +
+                            '<span>' + ' -- ' + selectedMonthName + ' ' + day + '</span>' +
+                        '</div>' +
+                        '<input type="text" autocomplete="name" id="name" placeholder="Enter your name/company name" />' +
+                        '<button style="margin-left:15px;" type="submit">Reserve</button>' +
                        '</div>';
         
         $('#time-slots').after(formHtml);
