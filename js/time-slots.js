@@ -3,6 +3,31 @@ jQuery(document).ready(function($) {
     var startOfMonth = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     var endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
+    var allReservations = [];
+
+    // Get all reservations for current month
+    function setAllReservations() {
+        $.ajax({
+            url: ajax_object.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'get_current_month_data'
+            },
+            success: function(response) {
+                if (response.success) {
+                    allReservations = response.data;
+                } else {
+                    console.log('No data found for the current month.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('AJAX Error: ' + error);
+            }
+        });
+    }
+    setAllReservations();
+    
+
     function fetchMonthlyReservations() {
         $.ajax({
             url: ajax_object.ajax_url,
@@ -35,7 +60,6 @@ jQuery(document).ready(function($) {
             reservationData[date].push(reservation.time_slot + ' - ' + reservation.name);
         });
         window.reservationData = reservationData;
-        console.log(window.reservationData); // Check the updated reservation data
     
         // Update the display for the currently selected date
         var selectedDate = $('.date-link.active').data('date');
@@ -100,24 +124,36 @@ jQuery(document).ready(function($) {
         let currentHour = new Date().getHours();
         let AMPM = 'AM';
         let nextAMPM = 'AM';
-
+    
         for (var hour = 9; hour < 17; hour++) {
             let printHour = hour > 12 ? hour - 12 : hour;
             let nextHour = hour + 1 > 12 ? hour - 11 : hour + 1;
             AMPM = hour >= 12 && hour < 24 ? 'PM' : 'AM';
             nextAMPM = (hour + 1) >= 12 && (hour + 1) < 24 ? 'PM' : 'AM';
-
+    
+            let timeSlotText = printHour + ':00 ' + AMPM + ' - ' + nextHour + ':00 ' + nextAMPM;
+    
             var slot = $('<button>')
-                .text(printHour + ':00 ' + AMPM + ' - ' + nextHour + ':00 ' + nextAMPM)
+                .text(timeSlotText)
                 .addClass('time-slot-button');
-            
+    
             if (day == today && hour <= currentHour) {
                 slot.addClass('unavailable').prop("disabled", true);
+            } else {
+                // Check if the time slot has been reserved
+                let isReserved = allReservations.some(reservation => {
+                    let reservationDate = new Date(reservation.date + 'T00:00:00');
+                    return reservationDate.getDate() == day && reservation.time_slot === timeSlotText;
+                });
+    
+                if (isReserved) {
+                    slot.addClass('unavailable').prop("disabled", true);
+                }
             }
-
+    
             $('#time-slots').append(slot);
         }
-    }
+    }    
 
     function showBookingForm(selectedTime, month, day) {
         // Remove existing form if any

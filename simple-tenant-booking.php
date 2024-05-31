@@ -206,4 +206,28 @@ function ajax_fetch_monthly_reservations() {
 add_action('wp_ajax_fetch_monthly_reservations', 'ajax_fetch_monthly_reservations');
 add_action('wp_ajax_nopriv_fetch_monthly_reservations', 'ajax_fetch_monthly_reservations');
 
+add_action('wp_ajax_get_current_month_data', 'get_current_month_data');
+add_action('wp_ajax_nopriv_get_current_month_data', 'get_current_month_data');
+
+function get_current_month_data() {
+    global $wpdb;
+
+    // Get the current month and year
+    $current_year = date('Y');
+    $current_month = date('m');
+
+    // Prepare the SQL query to fetch rows with the current month
+    $table_name = $wpdb->prefix . 'st_booking_reservations';
+    $query = $wpdb->prepare("
+        SELECT * FROM $table_name
+        WHERE YEAR(date) = %d AND MONTH(date) = %d
+    ", $current_year, $current_month);
+
+    // Execute the query
+    $results = $wpdb->get_results($query);
+
+    // Return the results as JSON
+    wp_send_json_success($results);
+}
+
 ?>
