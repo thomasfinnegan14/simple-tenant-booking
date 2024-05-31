@@ -18,9 +18,18 @@
     display: block;
     margin: 5px 0;
     width: 100%;
+    background-color: #07619d;
+}
+
+.time-slot-button:hover {
+    background-color: #0274be;
 }
 
 .unavailable {
+    background-color: #a1a1a1;
+}
+
+.unavailable:hover {
     background-color: #a1a1a1;
 }
 
