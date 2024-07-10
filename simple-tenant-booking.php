@@ -60,7 +60,7 @@ function st_booking_shortcode() {
         if ($currentDay >= $day) {
             // Check if current day is today
             if ($currentDay == $day) {
-                $calendar .= "<td class='stb-cell currentDay'><a href='#' class='date-link' data-day='$currentDay' data-month='$month' data-year='$year'>" . $currentDay . "</a></td>";
+                $calendar .= "<td class='stb-cell currentDay'><a href='#' class='date-link active' data-day='$currentDay' data-month='$month' data-year='$year'>" . $currentDay . "</a></td>";
             }
             else {
                 $calendar .= "<td class='stb-cell'><a href='#' class='date-link' data-day='$currentDay' data-month='$month' data-year='$year'>" . $currentDay . "</a></td>";
@@ -92,8 +92,8 @@ function st_booking_shortcode() {
     // HTML for displaying reservations
     $reservation_list = "<div id='reservation-list'><h3 id='reservation-list-title'>Today's Reservations:</h3><ul id='reservation-items'>";
     foreach ($todays_reservations as $reservation) {
-        $reservation_list .= "<li>" . htmlspecialchars($reservation['time_slot']) . " - " . htmlspecialchars($reservation['name']) . "</li>";
-    }
+        $reservation_list .= "<li>" . formatBlockToTime($reservation['start_block'], $reservation['duration_blocks']) . " - " . htmlspecialchars($reservation['name']) . "</li>";
+    }    
     $reservation_list .= "</ul></div>";    
 
     // Container for time slots
@@ -127,7 +127,8 @@ function st_booking_create_booking_table() {
         $sql = "CREATE TABLE `$table_name` (
           `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
           `date` DATE NOT NULL,
-          `time_slot` VARCHAR(50) NOT NULL,
+          `start_block` INT NOT NULL,
+          `duration_blocks` INT NOT NULL,
           `name` VARCHAR(255) NOT NULL,
           `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           PRIMARY KEY (`id`)
@@ -145,21 +146,44 @@ function save_reservation() {
 
     // Sanitize and validate inputs
     $name = sanitize_text_field($_POST['name']);
-    $time_slot = sanitize_text_field($_POST['time_slot']);
+    $start_block = intval($_POST['start_block']);
+    $duration_blocks = intval($_POST['duration_blocks']);
     $date = sanitize_text_field($_POST['date']);
+
+    // Ensure valid block numbers and duration
+    if ($start_block < 1 || $start_block > 20 || $duration_blocks < 1 || $duration_blocks > 8 || ($start_block + $duration_blocks - 1) > 20) {
+        echo 'Invalid reservation data.';
+        wp_die();
+    }
+
+    // Check for overlapping reservations
+    $overlap_check = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM `$table_name` WHERE date = %s AND (
+            (start_block <= %d AND (start_block + duration_blocks - 1) >= %d) OR
+            (start_block >= %d AND start_block <= (%d + %d - 1))
+        )",
+        $date, $start_block, $start_block, $start_block, $start_block, $duration_blocks
+    ));
+
+    if ($overlap_check > 0) {
+        echo 'Time slot is already reserved.';
+        wp_die();
+    }
 
     // Insert the booking into the database
     $wpdb->insert(
         $table_name,
         array(
             'date' => $date,
-            'time_slot' => $time_slot,
+            'start_block' => $start_block,
+            'duration_blocks' => $duration_blocks,
             'name' => $name
         ),
         array(
             '%s', // date
-            '%s', // time_slot
-            '%s' // name
+            '%d', // start_block
+            '%d', // duration_blocks
+            '%s'  // name
         )
     );
 
@@ -181,11 +205,35 @@ function fetch_reservations_by_date($date) {
 
     // Prepare the query to fetch reservations by date
     $reservations = $wpdb->get_results($wpdb->prepare(
-        "SELECT time_slot, name FROM `$table_name` WHERE date = %s ORDER BY time_slot ASC",
+        "SELECT start_block, duration_blocks, name FROM `$table_name` WHERE date = %s ORDER BY start_block ASC",
         $date
     ), ARRAY_A);
 
     return $reservations;
+}
+
+function formatBlockToTime($block, $duration_blocks) {
+    // Debugging: print block and duration_blocks
+    error_log("Block: " . $block);
+    error_log("Duration Blocks: " . $duration_blocks);
+
+    $startHour = floor(($block - 1) / 2) + 8;
+    $startMinute = ($block - 1) % 2 === 0 ? '00' : '30';
+
+    // Calculate the end block based on the start block and duration
+    $endBlock = $block + $duration_blocks - 1;
+    $endHour = floor(($endBlock - 1) / 2) + 8;
+    $endMinute = ($endBlock - 1) % 2 === 0 ? '00' : '30';
+
+    // Adjust the end time to account for the end minute being '30'
+    if (($endBlock - 1) % 2 === 1) {
+        $endMinute = '00';
+        $endHour += 1;
+    } else {
+        $endMinute = '30';
+    }
+
+    return sprintf("%02d:%s - %02d:%s", $startHour, $startMinute, $endHour, $endMinute);
 }
 
 function ajax_fetch_monthly_reservations() {
@@ -197,7 +245,7 @@ function ajax_fetch_monthly_reservations() {
 
     // Ensure that start_date and end_date are valid and secure to use in a query
     $reservations = $wpdb->get_results($wpdb->prepare(
-        "SELECT date, time_slot, name FROM `$table_name` WHERE date BETWEEN %s AND %s ORDER BY date, time_slot ASC",
+        "SELECT date, start_block, duration_blocks, name FROM `$table_name` WHERE date BETWEEN %s AND %s ORDER BY date, start_block ASC",
         $start_date, $end_date
     ), ARRAY_A);
 
